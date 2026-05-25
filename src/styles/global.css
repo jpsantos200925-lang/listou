@@ -58,8 +58,15 @@ body::after {
 
 /* ─── Scrollbar ──────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: var(--surface-2); }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+.items-scroll::-webkit-scrollbar { width: 4px; }
+.items-scroll::-webkit-scrollbar-track { background: transparent; }
+.items-scroll::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 4px;
+}
 
 /* ─── Keyframes ──────────────────────────────────────────────────── */
 @keyframes fadeUp {
@@ -80,6 +87,10 @@ body::after {
 }
 @keyframes slideOut {
   to { opacity: 0; transform: translateX(24px); max-height: 0; margin: 0; padding: 0; }
+}
+@keyframes itemEnter {
+  from { opacity: 0; transform: translateY(-14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
@@ -234,6 +245,7 @@ body::after {
 .items-scroll {
   flex: 1;
   overflow-y: auto;
+  padding-right: 8px;
   padding-bottom: max(80px, env(safe-area-inset-bottom));
 }
 
@@ -793,7 +805,7 @@ body::after {
 }
 
 .item-swipe-wrap .item-row {
-  animation: fadeUp .3s ease both;
+  animation: itemEnter .4s cubic-bezier(.34,1.56,.64,1) both;
   position: relative;
   z-index: 2;
   touch-action: pan-y;

@@ -29,7 +29,7 @@ export function useItems(month) {
       channel = subscribeToItems(month, {
         onInsert: ({ new: item }) => setItems((prev) => {
           if (prev.find((i) => i.id === item.id)) return prev
-          return [...prev, item]
+          return [item, ...prev]
         }),
         onUpdate: ({ new: item }) => setItems((prev) => prev.map((i) => i.id === item.id ? item : i)),
         onDelete: ({ old: item }) => setItems((prev) => prev.filter((i) => i.id !== item.id)),

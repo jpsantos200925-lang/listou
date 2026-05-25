@@ -5,7 +5,7 @@ export async function fetchItems(month) {
     .from('items')
     .select('*')
     .eq('month', month)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
   return data ?? []
 }
 
