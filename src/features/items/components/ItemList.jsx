@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function CheckIcon() {
   return (
@@ -39,11 +39,32 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
   const [editing, setEditing] = useState(false)
   const [editName, setEditName] = useState(item.name)
   const [editQty, setEditQty] = useState(item.quantity)
-  const [offset, setOffset] = useState(0)
+  const [offset, setOffsetState] = useState(0)
   const [dragging, setDragging] = useState(false)
+
+  // Ref espelha o state para evitar stale closure nos handlers de touch
+  const offsetRef = useRef(0)
+  const rowRef = useRef(null)
   const startX = useRef(0)
   const startY = useRef(0)
   const lockedAxis = useRef(null)
+
+  function setOffset(val) {
+    offsetRef.current = val
+    setOffsetState(val)
+  }
+
+  // Listener não-passivo para poder chamar preventDefault no eixo X
+  // (necessário para evitar que o browser roube o gesto como scroll)
+  useEffect(() => {
+    const el = rowRef.current
+    if (!el) return
+    const handleMove = (e) => {
+      if (lockedAxis.current === 'x') e.preventDefault()
+    }
+    el.addEventListener('touchmove', handleMove, { passive: false })
+    return () => el.removeEventListener('touchmove', handleMove)
+  }, [])
 
   function onTouchStart(e) {
     const t = e.touches[0]
@@ -65,14 +86,16 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
     }
     if (lockedAxis.current !== 'x') return
 
-    const next = Math.min(0, Math.max(dx + (offset < 0 ? offset : 0), -120))
+    const base = offsetRef.current < 0 ? offsetRef.current : 0
+    const next = Math.min(0, Math.max(dx + base, -SWIPE_REVEAL))
     setOffset(next)
   }
 
   function onTouchEnd() {
     setDragging(false)
     if (lockedAxis.current === 'x') {
-      setOffset(offset < -SWIPE_TRIGGER ? -SWIPE_REVEAL : 0)
+      // Usa ref para ler o offset real, sem stale closure
+      setOffset(offsetRef.current < -SWIPE_TRIGGER ? -SWIPE_REVEAL : 0)
     }
   }
 
@@ -82,7 +105,7 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
   }
 
   function handleToggle() {
-    if (offset !== 0) { setOffset(0); return }
+    if (offsetRef.current !== 0) { setOffset(0); return }
     onToggle(item.id, !item.checked)
   }
 
@@ -152,6 +175,7 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
         <TrashIcon />
       </button>
       <div
+        ref={rowRef}
         className={`item-row${item.checked ? ' is-checked' : ''}${dragging ? ' is-dragging' : ''}`}
         style={{ transform: `translateX(${offset}px)` }}
         onTouchStart={onTouchStart}
