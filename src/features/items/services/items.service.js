@@ -37,6 +37,17 @@ export async function removeItem(id) {
   if (error) throw error
 }
 
+export async function updateItem(id, { name, quantity }) {
+  const { data, error } = await supabase
+    .from('items')
+    .update({ name, quantity })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
 export async function fetchMonthsForList(listId) {
   const { data, error } = await supabase
     .from('items')

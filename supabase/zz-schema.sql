@@ -16,6 +16,9 @@ create table if not exists lists (
   secondary_color text not null default '#16a34a',
   bg_color text not null default '#0f0f0f',
   font_color text not null default '#f0f0f0',
+  title_color text not null default '#f5f5f5',
+  label_color text not null default '#888888',
+  item_bg_color text not null default '#1e1e1e',
   logo_url text,
   created_at timestamptz not null default now()
 );

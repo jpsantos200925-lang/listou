@@ -4,6 +4,7 @@ import {
   addItem,
   toggleItem,
   removeItem,
+  updateItem,
   copyItemsFromMonth,
   subscribeToItems,
   unsubscribeFromItems,
@@ -61,6 +62,10 @@ export function useItems(listId, month) {
     deleteItem: (id) => {
       setItems((prev) => prev.filter((i) => i.id !== id))
       return removeItem(id)
+    },
+    editItem: (id, updates) => {
+      setItems((prev) => prev.map((i) => i.id === id ? { ...i, ...updates } : i))
+      return updateItem(id, updates)
     },
     copyFromMonth: (sourceMonth) => copyItemsFromMonth(listId, sourceMonth, month),
   }

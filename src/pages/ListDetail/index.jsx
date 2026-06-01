@@ -12,7 +12,7 @@ export default function ListDetail() {
   const [month, setMonth] = useState(currentMonth())
   const [formOpen, setFormOpen] = useState(false)
 
-  const { items, loading: itemsLoading, addItem, toggleItem, deleteItem, copyFromMonth } = useItems(list?.id, month)
+  const { items, loading: itemsLoading, addItem, toggleItem, deleteItem, editItem, copyFromMonth } = useItems(list?.id, month)
 
   useEffect(() => {
     if (notFound) navigate('/')
@@ -26,11 +26,17 @@ export default function ListDetail() {
     root.style.setProperty('--color-secondary', list.secondary_color)
     root.style.setProperty('--color-bg', list.bg_color)
     root.style.setProperty('--color-text', list.font_color || '#f0f0f0')
+    root.style.setProperty('--color-title', list.title_color || '#f5f5f5')
+    root.style.setProperty('--color-label', list.label_color || '#888888')
+    root.style.setProperty('--color-item-bg', list.item_bg_color || '#1e1e1e')
     return () => {
       root.style.removeProperty('--color-primary')
       root.style.removeProperty('--color-secondary')
       root.style.removeProperty('--color-bg')
       root.style.removeProperty('--color-text')
+      root.style.removeProperty('--color-title')
+      root.style.removeProperty('--color-label')
+      root.style.removeProperty('--color-item-bg')
     }
   }, [list])
 
@@ -95,7 +101,7 @@ export default function ListDetail() {
         {itemsLoading ? (
           <div className="loading-dots"><span /><span /><span /></div>
         ) : (
-          <ItemList items={items} onToggle={toggleItem} onDelete={deleteItem} list={list} />
+          <ItemList items={items} onToggle={toggleItem} onDelete={deleteItem} onEdit={editItem} list={list} />
         )}
       </div>
 
