@@ -5,6 +5,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+async function getMlToken(): Promise<string> {
+  // Usa token estático se configurado, senão gera um novo via client_credentials
+  const staticToken = Deno.env.get('ML_ACCESS_TOKEN')
+  if (staticToken) return staticToken
+
+  const appId     = Deno.env.get('ML_APP_ID')
+  const appSecret = Deno.env.get('ML_APP_SECRET')
+  if (!appId || !appSecret) throw new Error('ML_APP_ID e ML_APP_SECRET não configurados')
+
+  const res = await fetch('https://api.mercadolibre.com/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=client_credentials&client_id=${appId}&client_secret=${appSecret}`,
+  })
+  if (!res.ok) throw new Error('Falha ao obter token do ML')
+  const data = await res.json()
+  return data.access_token
+}
+
 async function mlFetch(url: string, token: string) {
   const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
   if (!res.ok) return null
@@ -12,7 +31,6 @@ async function mlFetch(url: string, token: string) {
 }
 
 async function searchPrices(query: string, itemId: string, token: string) {
-  // 1. Buscar produtos do catálogo ML
   const products = await mlFetch(
     `https://api.mercadolibre.com/products/search?site_id=MLB&q=${encodeURIComponent(query)}&limit=20`,
     token
@@ -24,10 +42,9 @@ async function searchPrices(query: string, itemId: string, token: string) {
   for (const prod of products.results) {
     if (results.length >= 5) break
 
-    const pid = prod.id
+    const pid  = prod.id
     const name = prod.name as string
 
-    // 2. Buscar listagens ativas e thumbnail em paralelo
     const [itemsData, detail] = await Promise.all([
       mlFetch(`https://api.mercadolibre.com/products/${pid}/items?limit=3`, token),
       mlFetch(`https://api.mercadolibre.com/products/${pid}?attributes=pictures`, token),
@@ -36,16 +53,16 @@ async function searchPrices(query: string, itemId: string, token: string) {
     const items = itemsData?.results ?? []
     if (!items.length) continue
 
-    const price = Math.min(...items.map((i: { price: number }) => i.price))
-    const pics = detail?.pictures ?? []
+    const price    = Math.min(...items.map((i: { price: number }) => i.price))
+    const pics     = detail?.pictures ?? []
     const thumbnail = pics[0]?.url ?? null
 
     results.push({
-      item_id: itemId,
+      item_id:      itemId,
       product_name: name,
       price,
-      image_url: thumbnail,
-      product_url: `https://www.mercadolivre.com.br/p/${pid}`,
+      image_url:    thumbnail,
+      product_url:  `https://www.mercadolivre.com.br/p/${pid}`,
     })
   }
 
@@ -88,14 +105,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    const mlToken = Deno.env.get('ML_ACCESS_TOKEN')
-    if (!mlToken) {
-      return new Response(JSON.stringify({ error: 'ML_ACCESS_TOKEN não configurado' }), {
-        status: 503,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
+    const mlToken = await getMlToken()
     const results = await searchPrices(query, item_id, mlToken)
 
     const supabaseAdmin = createClient(
