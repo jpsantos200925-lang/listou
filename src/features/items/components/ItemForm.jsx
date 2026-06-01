@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 
-export default function ItemForm({ open, onClose, onAdd }) {
+export default function ItemForm({ open, onClose, onAdd, onEdit, initial }) {
   const [name, setName] = useState('')
   const [quantity, setQuantity] = useState('')
   const nameRef = useRef(null)
+  const isEditing = Boolean(initial)
 
   useEffect(() => {
     if (open) {
+      setName(initial?.name ?? '')
+      setQuantity(initial?.quantity ?? '')
       setTimeout(() => nameRef.current?.focus(), 80)
     } else {
       setName('')
       setQuantity('')
     }
-  }, [open])
+  }, [open, initial])
 
   useEffect(() => {
     if (!open) return
@@ -24,10 +27,16 @@ export default function ItemForm({ open, onClose, onAdd }) {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!name.trim()) return
-    await onAdd({ name: name.trim(), quantity: quantity.trim() || '1' })
-    setName('')
-    setQuantity('')
-    setTimeout(() => nameRef.current?.focus(), 50)
+    const payload = { name: name.trim(), quantity: quantity.trim() || '1' }
+    if (isEditing) {
+      await onEdit(initial.id, payload)
+      onClose()
+    } else {
+      await onAdd(payload)
+      setName('')
+      setQuantity('')
+      setTimeout(() => nameRef.current?.focus(), 50)
+    }
   }
 
   if (!open) return null
@@ -36,7 +45,7 @@ export default function ItemForm({ open, onClose, onAdd }) {
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-handle" />
-        <h3 className="sheet-title">Novo item</h3>
+        <h3 className="sheet-title">{isEditing ? 'Editar item' : 'Novo item'}</h3>
         <form className="sheet-form" onSubmit={handleSubmit}>
           <input
             ref={nameRef}
@@ -57,7 +66,9 @@ export default function ItemForm({ open, onClose, onAdd }) {
           />
           <div className="sheet-actions">
             <button type="button" className="btn-ghost" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn-primary sheet-submit">Adicionar</button>
+            <button type="submit" className="btn-primary sheet-submit">
+              {isEditing ? 'Salvar' : 'Adicionar'}
+            </button>
           </div>
         </form>
       </div>

@@ -34,15 +34,11 @@ function PencilIcon() {
 const SWIPE_REVEAL = 84
 const SWIPE_TRIGGER = 50
 
-function ItemRow({ item, onToggle, onDelete, onEdit }) {
+function ItemRow({ item, onToggle, onDelete, onEditRequest }) {
   const [removing, setRemoving] = useState(false)
-  const [editing, setEditing] = useState(false)
-  const [editName, setEditName] = useState(item.name)
-  const [editQty, setEditQty] = useState(item.quantity)
   const [offset, setOffsetState] = useState(0)
   const [dragging, setDragging] = useState(false)
 
-  // Ref espelha o state para evitar stale closure nos handlers de touch
   const offsetRef = useRef(0)
   const rowRef = useRef(null)
   const startX = useRef(0)
@@ -54,8 +50,6 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
     setOffsetState(val)
   }
 
-  // Listener não-passivo para poder chamar preventDefault no eixo X
-  // (necessário para evitar que o browser roube o gesto como scroll)
   useEffect(() => {
     const el = rowRef.current
     if (!el) return
@@ -87,14 +81,12 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
     if (lockedAxis.current !== 'x') return
 
     const base = offsetRef.current < 0 ? offsetRef.current : 0
-    const next = Math.min(0, Math.max(dx + base, -SWIPE_REVEAL))
-    setOffset(next)
+    setOffset(Math.min(0, Math.max(dx + base, -SWIPE_REVEAL)))
   }
 
   function onTouchEnd() {
     setDragging(false)
     if (lockedAxis.current === 'x') {
-      // Usa ref para ler o offset real, sem stale closure
       setOffset(offsetRef.current < -SWIPE_TRIGGER ? -SWIPE_REVEAL : 0)
     }
   }
@@ -109,58 +101,9 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
     onToggle(item.id, !item.checked)
   }
 
-  function handleEditStart() {
-    setEditName(item.name)
-    setEditQty(item.quantity)
-    setEditing(true)
+  function handleEditRequest() {
     setOffset(0)
-  }
-
-  function handleSaveEdit(e) {
-    e.preventDefault()
-    if (!editName.trim()) return
-    onEdit(item.id, { name: editName.trim(), quantity: editQty.trim() || '1' })
-    setEditing(false)
-  }
-
-  function handleCancelEdit() {
-    setEditName(item.name)
-    setEditQty(item.quantity)
-    setEditing(false)
-  }
-
-  if (editing) {
-    return (
-      <li className="item-swipe-wrap">
-        <form className="item-edit-form" onSubmit={handleSaveEdit}>
-          <input
-            className="item-edit-input"
-            value={editName}
-            onChange={e => setEditName(e.target.value)}
-            placeholder="Nome"
-            autoFocus
-          />
-          <input
-            className="item-edit-input item-edit-qty"
-            value={editQty}
-            onChange={e => setEditQty(e.target.value)}
-            placeholder="Qtd"
-          />
-          <div className="item-edit-actions">
-            <button type="button" className="item-edit-cancel" onClick={handleCancelEdit} aria-label="Cancelar">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-            <button type="submit" className="item-edit-save" aria-label="Salvar">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </button>
-          </div>
-        </form>
-      </li>
-    )
+    onEditRequest(item)
   }
 
   return (
@@ -182,12 +125,8 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <label className="item-checkbox" onClick={(e) => { if (offset !== 0) { e.preventDefault(); setOffset(0) } }}>
-          <input
-            type="checkbox"
-            checked={item.checked}
-            onChange={handleToggle}
-          />
+        <label className="item-checkbox" onClick={(e) => { if (offsetRef.current !== 0) { e.preventDefault(); setOffset(0) } }}>
+          <input type="checkbox" checked={item.checked} onChange={handleToggle} />
           <div className="item-checkbox-box">
             {item.checked && <CheckIcon />}
           </div>
@@ -198,7 +137,7 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
           <span className="item-qty">{item.quantity}</span>
         </div>
 
-        <button className="btn-edit" onClick={handleEditStart} aria-label="Editar">
+        <button className="btn-edit" onClick={handleEditRequest} aria-label="Editar">
           <PencilIcon />
         </button>
         <button className="btn-delete" onClick={handleDelete} aria-label="Remover">
@@ -209,7 +148,7 @@ function ItemRow({ item, onToggle, onDelete, onEdit }) {
   )
 }
 
-export default function ItemList({ items, onToggle, onDelete, onEdit, list }) {
+export default function ItemList({ items, onToggle, onDelete, onEditRequest, list }) {
   if (!items.length) {
     return (
       <div className="empty-state">
@@ -241,7 +180,7 @@ export default function ItemList({ items, onToggle, onDelete, onEdit, list }) {
           </div>
           <ul className="item-list">
             {pending.map((item) => (
-              <ItemRow key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} />
+              <ItemRow key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} onEditRequest={onEditRequest} />
             ))}
           </ul>
         </>
@@ -255,7 +194,7 @@ export default function ItemList({ items, onToggle, onDelete, onEdit, list }) {
           </div>
           <ul className="item-list">
             {done.map((item) => (
-              <ItemRow key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} onEdit={onEdit} />
+              <ItemRow key={item.id} item={item} onToggle={onToggle} onDelete={onDelete} onEditRequest={onEditRequest} />
             ))}
           </ul>
         </>

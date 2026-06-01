@@ -11,6 +11,7 @@ export default function ListDetail() {
   const { list, loading: listLoading, notFound } = useListBySlug(slug)
   const [month, setMonth] = useState(currentMonth())
   const [formOpen, setFormOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
 
   const { items, loading: itemsLoading, addItem, toggleItem, deleteItem, editItem, copyFromMonth } = useItems(list?.id, month)
 
@@ -101,7 +102,13 @@ export default function ListDetail() {
         {itemsLoading ? (
           <div className="loading-dots"><span /><span /><span /></div>
         ) : (
-          <ItemList items={items} onToggle={toggleItem} onDelete={deleteItem} onEdit={editItem} list={list} />
+          <ItemList
+            items={items}
+            onToggle={toggleItem}
+            onDelete={deleteItem}
+            onEditRequest={(item) => { setEditingItem(item); setFormOpen(true) }}
+            list={list}
+          />
         )}
       </div>
 
@@ -112,7 +119,13 @@ export default function ListDetail() {
         </svg>
       </button>
 
-      <ItemForm open={formOpen} onClose={() => setFormOpen(false)} onAdd={addItem} />
+      <ItemForm
+        open={formOpen}
+        onClose={() => { setFormOpen(false); setEditingItem(null) }}
+        onAdd={addItem}
+        onEdit={editItem}
+        initial={editingItem}
+      />
     </div>
   )
 }
