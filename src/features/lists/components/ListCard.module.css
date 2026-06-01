@@ -1,0 +1,41 @@
+.card {
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--card-primary) 7%, #181818) 0%,
+    #141414 55%
+  );
+  border-color: color-mix(in srgb, var(--card-primary) 18%, #222);
+  border-left-color: var(--card-primary);
+}
+
+.card:hover {
+  transform: translateX(3px);
+  border-color: color-mix(in srgb, var(--card-primary) 40%, #333);
+  border-left-color: var(--card-primary);
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--card-primary) 12%, #1e1e1e) 0%,
+    #181818 55%
+  );
+  box-shadow:
+    -4px 0 16px color-mix(in srgb, var(--card-primary) 20%, transparent),
+    0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.card:active {
+  transform: translateX(1px) scale(0.99);
+}
+
+.logoPlaceholder {
+  background: color-mix(in srgb, var(--card-primary) 18%, #1e1e1e);
+  color: var(--card-primary);
+  border: 1.5px solid color-mix(in srgb, var(--card-primary) 35%, transparent);
+}
+
+.slug {
+  color: color-mix(in srgb, var(--card-primary) 55%, #555);
+}
+
+.chevron {
+  color: color-mix(in srgb, var(--card-primary) 45%, #444);
+}

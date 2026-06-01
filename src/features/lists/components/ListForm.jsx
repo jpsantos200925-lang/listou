@@ -25,6 +25,9 @@ const DEFAULTS = {
   item_bg_color: '#1e1e1e',
 }
 
+const inputCls = 'bg-[#111] border border-[#2a2a2a] rounded-lg text-[#f0f0f0] py-[0.6rem] px-3 text-[0.9rem] w-full outline-none focus:border-primary transition-[border-color]'
+const labelCls = 'text-[0.75rem] text-label uppercase tracking-[0.05em]'
+
 export default function ListForm({ open, onClose, onSave, initial }) {
   const [form, setForm] = useState(DEFAULTS)
   const [logoFile, setLogoFile] = useState(null)
@@ -80,82 +83,94 @@ export default function ListForm({ open, onClose, onSave, initial }) {
   if (!open) return null
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2 className="modal-title">{initial ? 'Editar lista' : 'Nova lista'}</h2>
-        <form onSubmit={handleSubmit} className="list-form">
-          <div className="form-row">
+    <div className="fixed inset-0 bg-black/70 flex items-end justify-center z-100" onClick={onClose}>
+      <div className="bg-[#1a1a1a] rounded-[20px_20px_0_0] px-5 py-6 pb-8 w-full max-w-[480px] max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h2 className="text-[1.1rem] font-bold text-text mb-5">{initial ? 'Editar lista' : 'Nova lista'}</h2>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex gap-4 items-start">
             <LogoUpload currentUrl={logoPreview} onFile={handleLogoFile} />
-            <div className="form-fields">
-              <label className="form-label">Nome da lista</label>
+            <div className="flex-1 flex flex-col gap-2">
+              <label className={labelCls}>Nome da lista</label>
               <input
-                className="form-input"
+                className={inputCls}
                 type="text"
                 placeholder="Compras do Bebê"
                 value={form.name}
                 onChange={e => set('name', e.target.value)}
                 required
               />
-              <label className="form-label">Rota (URL)</label>
+              <label className={labelCls}>Rota (URL)</label>
               <SlugInput value={form.slug} onChange={val => set('slug', val)} excludeId={initial?.id} />
             </div>
           </div>
 
-          <div className="presets-section">
-            <span className="form-label">Temas</span>
-            <div className="presets-grid">
+          <div className="flex flex-col gap-2">
+            <span className={labelCls}>Temas</span>
+            <div className="grid grid-cols-4 gap-[0.4rem]">
               {PRESETS.map(preset => (
                 <button
                   key={preset.name}
                   type="button"
-                  className={`preset-swatch${activePreset === preset.name ? ' active' : ''}`}
+                  className={`flex flex-col items-center gap-[5px] bg-transparent border-[1.5px] rounded-[10px] p-2 pb-1.5 cursor-pointer transition-[border-color,transform] duration-150 hover:border-[#444] hover:-translate-y-px ${activePreset === preset.name ? 'border-primary' : 'border-[#222]'}`}
                   onClick={() => applyPreset(preset)}
                   title={preset.name}
                 >
                   <span
-                    className="preset-dot"
+                    className="w-7 h-7 rounded-full border-2 border-white/8 shrink-0"
                     style={{ background: `linear-gradient(135deg, ${preset.primary_color}, ${preset.secondary_color})` }}
                   />
-                  <span className="preset-name">{preset.name}</span>
+                  <span className={`text-[9px] text-center whitespace-nowrap tracking-[0.02em] ${activePreset === preset.name ? 'text-primary' : 'text-[#555]'}`}>
+                    {preset.name}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="color-row">
-            <div className="color-field">
-              <label className="form-label">Primária</label>
-              <input type="color" value={form.primary_color} onChange={e => set('primary_color', e.target.value)} />
-            </div>
-            <div className="color-field">
-              <label className="form-label">Secundária</label>
-              <input type="color" value={form.secondary_color} onChange={e => set('secondary_color', e.target.value)} />
-            </div>
-            <div className="color-field">
-              <label className="form-label">Fundo</label>
-              <input type="color" value={form.bg_color} onChange={e => set('bg_color', e.target.value)} />
-            </div>
-            <div className="color-field">
-              <label className="form-label">Texto</label>
-              <input type="color" value={form.font_color} onChange={e => set('font_color', e.target.value)} />
-            </div>
-            <div className="color-field">
-              <label className="form-label">Título</label>
-              <input type="color" value={form.title_color} onChange={e => set('title_color', e.target.value)} />
-            </div>
-            <div className="color-field">
-              <label className="form-label">Labels</label>
-              <input type="color" value={form.label_color} onChange={e => set('label_color', e.target.value)} />
-            </div>
-            <div className="color-field color-field--full">
-              <label className="form-label">Fundo dos itens</label>
-              <input type="color" value={form.item_bg_color} onChange={e => set('item_bg_color', e.target.value)} />
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Primária',       key: 'primary_color' },
+              { label: 'Secundária',     key: 'secondary_color' },
+              { label: 'Fundo',          key: 'bg_color' },
+              { label: 'Texto',          key: 'font_color' },
+              { label: 'Título',         key: 'title_color' },
+              { label: 'Labels',         key: 'label_color' },
+            ].map(({ label, key }) => (
+              <div key={key} className="flex flex-col gap-[0.4rem] items-center">
+                <label className={labelCls}>{label}</label>
+                <input
+                  type="color"
+                  value={form[key]}
+                  onChange={e => set(key, e.target.value)}
+                  className="w-full h-9 border border-[#2a2a2a] rounded-lg bg-[#111] cursor-pointer p-0.5"
+                />
+              </div>
+            ))}
+            <div className="col-span-2 flex flex-row items-center justify-between gap-3">
+              <label className={labelCls}>Fundo dos itens</label>
+              <input
+                type="color"
+                value={form.item_bg_color}
+                onChange={e => set('item_bg_color', e.target.value)}
+                className="w-20 h-9 border border-[#2a2a2a] rounded-lg bg-[#111] cursor-pointer p-0.5"
+              />
             </div>
           </div>
 
-          <div className="form-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>Cancelar</button>
-            <button type="submit" className="btn-primary" disabled={saving}>
+          <div className="flex gap-3 mt-2">
+            <button
+              type="button"
+              className="flex-1 bg-[#2a2a2a] text-[#ccc] border-none rounded-[10px] py-3 text-[0.9rem] font-semibold cursor-pointer"
+              onClick={onClose}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 bg-primary text-white border-none rounded-[10px] py-3 text-[0.9rem] font-semibold cursor-pointer disabled:opacity-50"
+            >
               {saving ? 'Salvando...' : 'Salvar'}
             </button>
           </div>

@@ -11,8 +11,22 @@ function sanitizeSlug(value) {
     .replace(/^-|-$/g, '')
 }
 
+const statusCls = {
+  checking: 'text-[#888]',
+  available: 'text-green-500',
+  taken: 'text-[#ef4444]',
+}
+
+const statusLabel = {
+  checking: 'verificando...',
+  available: '✓ disponível',
+  taken: '✗ já existe',
+}
+
+const inputCls = 'bg-[#111] border border-[#2a2a2a] rounded-lg text-text py-[0.6rem] px-3 text-[0.9rem] w-full outline-none focus:border-primary transition-[border-color]'
+
 export default function SlugInput({ value, onChange, excludeId }) {
-  const [status, setStatus] = useState(null) // null | 'checking' | 'available' | 'taken'
+  const [status, setStatus] = useState(null)
   const timerRef = useRef(null)
 
   const handleChange = (e) => {
@@ -27,7 +41,6 @@ export default function SlugInput({ value, onChange, excludeId }) {
     timerRef.current = setTimeout(async () => {
       try {
         let available = await checkSlugAvailable(value)
-        // Se for edição e o slug é do próprio item, está disponível
         if (!available && excludeId) {
           const { data } = await supabase.from('lists').select('id').eq('slug', value).single()
           if (data?.id === excludeId) available = true
@@ -40,23 +53,21 @@ export default function SlugInput({ value, onChange, excludeId }) {
     return () => clearTimeout(timerRef.current)
   }, [value, excludeId])
 
-  const indicator = {
-    checking: <span className="slug-status checking">verificando...</span>,
-    available: <span className="slug-status available">✓ disponível</span>,
-    taken: <span className="slug-status taken">✗ já existe</span>,
-  }[status]
-
   return (
-    <div className="slug-input-wrap">
+    <div className="flex flex-col gap-1">
       <input
-        className="form-input"
+        className={inputCls}
         type="text"
         placeholder="minha-lista"
         value={value}
         onChange={handleChange}
         maxLength={50}
       />
-      {indicator}
+      {status && (
+        <span className={`text-[0.72rem] pl-1 ${statusCls[status]}`}>
+          {statusLabel[status]}
+        </span>
+      )}
     </div>
   )
 }

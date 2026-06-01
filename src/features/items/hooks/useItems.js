@@ -9,6 +9,7 @@ import {
   subscribeToItems,
   unsubscribeFromItems,
 } from '../services/items.service'
+import { copyPriceResultsForItems } from '@/features/prices/services/prices.service'
 
 export function useItems(listId, month) {
   const [items, setItems] = useState([])
@@ -57,7 +58,8 @@ export function useItems(listId, month) {
   return {
     items,
     loading,
-    addItem: ({ name, quantity }) => addItem(listId, { name, quantity, month }),
+    addItem: ({ name, quantity, is_online_purchase = false }) =>
+      addItem(listId, { name, quantity, month, is_online_purchase }),
     toggleItem,
     deleteItem: (id) => {
       setItems((prev) => prev.filter((i) => i.id !== id))
@@ -67,6 +69,12 @@ export function useItems(listId, month) {
       setItems((prev) => prev.map((i) => i.id === id ? { ...i, ...updates } : i))
       return updateItem(id, updates)
     },
-    copyFromMonth: (sourceMonth) => copyItemsFromMonth(listId, sourceMonth, month),
+    copyFromMonth: async (sourceMonth) => {
+      const { items: inserted, idMap } = await copyItemsFromMonth(listId, sourceMonth, month)
+      await copyPriceResultsForItems(idMap).catch((err) =>
+        console.error('[useItems] copyPriceResultsForItems error', err)
+      )
+      return inserted
+    },
   }
 }

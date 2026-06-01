@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+/* ─── Tailwind theme tokens ──────────────────────────────────────────── */
+@theme {
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body:    'Outfit', system-ui, sans-serif;
+  --font-syne:    'Syne', system-ui, sans-serif;
+  --font-mono:    'SF Mono', 'Fira Code', monospace;
+
+  --radius:    12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+
+  --transition:      200ms cubic-bezier(.25, .8, .25, 1);
+  --transition-slow: 400ms cubic-bezier(.25, .8, .25, 1);
+
+  /* Static palette */
+  --color-surface:    #FDFCFA;
+  --color-surface-2:  #EAE6DE;
+  --color-surface-3:  #E0DCD4;
+  --color-border:     #D0CBB4;
+  --color-border-lt:  #C2BDB4;
+  --color-text-1:     #1C1814;
+  --color-text-2:     #6A6158;
+  --color-text-3:     #9E9488;
+  --color-green:      #3D7A5A;
+  --color-red:        #A04535;
+
+  /* Dynamic per-list tokens — default values; JS overrides --color-primary etc. at :root */
+  --color-primary:   #22c55e;
+  --color-secondary: #16a34a;
+  --color-bg:        #0f0f0f;
+  --color-text:      #f0f0f0;
+  --color-title:     #f5f5f5;
+  --color-label:     #888888;
+  --color-item-bg:   #1e1e1e;
+
+  /* gold aliases (used across many components) */
+  --color-gold:      var(--color-primary);
+  --color-gold-lt:   var(--color-secondary);
+  --color-gold-dim:  color-mix(in srgb, var(--color-primary) 65%, black);
+
+  /* color-mix helpers — bg-primary-{n} / border-primary-{n} / text-primary-{n} */
+  --color-primary-4:  color-mix(in srgb, var(--color-primary) 4%,  transparent);
+  --color-primary-5:  color-mix(in srgb, var(--color-primary) 5%,  transparent);
+  --color-primary-8:  color-mix(in srgb, var(--color-primary) 8%,  transparent);
+  --color-primary-10: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --color-primary-12: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  --color-primary-15: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  --color-primary-18: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  --color-primary-20: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  --color-primary-25: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  --color-primary-30: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  --color-primary-35: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  --color-primary-40: color-mix(in srgb, var(--color-primary) 40%, transparent);
+  --color-primary-45: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  --color-primary-55: color-mix(in srgb, var(--color-primary) 55%, transparent);
+
+  /* primary mixed with --color-item-bg (used in expense/price/empty-state) */
+  --color-primary-4-item:  color-mix(in srgb, var(--color-primary) 4%,  var(--color-item-bg, #1e1e1e));
+  --color-primary-5-item:  color-mix(in srgb, var(--color-primary) 5%,  var(--color-item-bg, #1e1e1e));
+  --color-primary-8-item:  color-mix(in srgb, var(--color-primary) 8%,  var(--color-item-bg, #1e1e1e));
+  --color-primary-12-item: color-mix(in srgb, var(--color-primary) 12%, var(--color-item-bg, #1e1e1e));
+
+  /* item-bg hover (item-row hover) */
+  --color-item-bg-hover: color-mix(in srgb, var(--color-item-bg, #1e1e1e) 85%, white);
+
+  /* text at reduced opacity (progress label) */
+  --color-text-40: color-mix(in srgb, var(--color-text, #f0f0f0) 40%, transparent);
+
+  /* card-primary alias (used in ListCard) */
+  --color-card-primary: var(--card-primary, var(--color-primary));
+
+  /* Keyframe animations */
+  --animate-fade-up:    fadeUp .4s ease both;
+  --animate-fade-in:    fadeIn .4s ease;
+  --animate-fade-up-sm: fadeUp .2s ease;
+  --animate-sheet-up:   sheetUp .3s cubic-bezier(.25,.8,.25,1) both;
+  --animate-item-enter: itemEnter .4s cubic-bezier(.34,1.56,.64,1) both;
+  --animate-check-draw: checkDraw .2s ease forwards;
+  --animate-slide-out:  slideOut .25s ease forwards;
+  --animate-pulse-dot:  pulse 1.4s ease infinite;
+  --animate-spin:       spin .9s linear infinite;
+  --animate-shimmer:    shimmer 1.5s linear infinite;
+}
+
+/* ─── Keyframes ──────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes checkDraw {
+  from { stroke-dashoffset: 20; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes slideOut {
+  to { opacity: 0; transform: translateX(24px); max-height: 0; margin: 0; padding: 0; }
+}
+@keyframes itemEnter {
+  from { opacity: 0; transform: translateY(-14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .4; }
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { height: 100%; }
+
+  body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    color: #f0f0f0;
+    background: #0f0f0f;
+    min-height: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Grain overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    opacity: .025;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  #root { min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border-lt); border-radius: 4px; }
+
+  .items-scroll::-webkit-scrollbar-thumb { background: var(--color-gold); }
+}

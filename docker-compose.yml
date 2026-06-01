@@ -184,6 +184,31 @@ services:
       - supabase
 
   ##############################################################################
+  # Edge Functions (Deno runtime)
+  ##############################################################################
+  functions:
+    image: supabase/edge-runtime:v1.67.4
+    restart: unless-stopped
+    volumes:
+      - ./supabase/functions:/home/deno/functions:ro
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/postgres
+      ML_ACCESS_TOKEN: ${ML_ACCESS_TOKEN}
+      VERIFY_JWT: "false"
+    command:
+      - start
+      - --main-service
+      - /home/deno/functions/search-prices
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase
+
+  ##############################################################################
   # Seed — cria o usuário admin na primeira execução
   ##############################################################################
   seed:

@@ -11,10 +11,10 @@ export async function fetchItems(listId, month) {
   return data
 }
 
-export async function addItem(listId, { name, quantity, month }) {
+export async function addItem(listId, { name, quantity, month, is_online_purchase = false }) {
   const { data, error } = await supabase
     .from('items')
-    .insert({ list_id: listId, name, quantity, month })
+    .insert({ list_id: listId, name, quantity, month, is_online_purchase })
     .select()
     .single()
   if (error) throw error
@@ -37,10 +37,13 @@ export async function removeItem(id) {
   if (error) throw error
 }
 
-export async function updateItem(id, { name, quantity }) {
+export async function updateItem(id, updates) {
+  const { name, quantity, is_online_purchase } = updates
+  const patch = { name, quantity }
+  if (is_online_purchase !== undefined) patch.is_online_purchase = is_online_purchase
   const { data, error } = await supabase
     .from('items')
-    .update({ name, quantity })
+    .update(patch)
     .eq('id', id)
     .select()
     .single()
@@ -62,23 +65,31 @@ export async function fetchMonthsForList(listId) {
 export async function copyItemsFromMonth(listId, fromMonth, toMonth) {
   const { data, error } = await supabase
     .from('items')
-    .select('name, quantity')
+    .select('id, name, quantity, is_online_purchase')
     .eq('list_id', listId)
     .eq('month', fromMonth)
+    .order('created_at', { ascending: true })
   if (error) throw error
-  const inserts = data.map(({ name, quantity }) => ({
+
+  const inserts = data.map(({ name, quantity, is_online_purchase }) => ({
     list_id: listId,
     name,
     quantity,
     month: toMonth,
     checked: false,
+    is_online_purchase: is_online_purchase ?? false,
   }))
+
   const { data: inserted, error: insertError } = await supabase
     .from('items')
     .insert(inserts)
     .select()
   if (insertError) throw insertError
-  return inserted
+
+  // Build old→new id map (positional: Supabase returns in insertion order)
+  const idMap = new Map(data.map((src, i) => [src.id, inserted[i].id]))
+
+  return { items: inserted, idMap }
 }
 
 export function subscribeToItems(listId, month, { onInsert, onUpdate, onDelete, onStatus }) {

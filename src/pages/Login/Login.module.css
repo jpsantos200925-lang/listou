@@ -1,0 +1,11 @@
+.page {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 85%, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 85% 15%, color-mix(in srgb, var(--color-primary) 5%, transparent) 0%, transparent 60%),
+    #0f0f0f;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
