@@ -769,12 +769,13 @@ body::after {
 }
 
 .sheet-title {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: var(--color-text);
+  font-family: 'Syne', system-ui, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-primary, #22c55e);
   margin-bottom: 18px;
-  text-align: center;
+  text-align: left;
 }
 
 .sheet-form {
