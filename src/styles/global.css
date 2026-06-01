@@ -862,9 +862,10 @@ body::after {
   pointer-events: auto;
 }
 
-/* hide static delete button on touch (swipe replaces it) */
+/* on touch devices: show both edit and delete always (no hover state) */
 @media (hover: none) {
-  .btn-delete { display: none; }
+  .btn-delete { opacity: 1; pointer-events: auto; }
+  .btn-edit { opacity: 1; pointer-events: auto; }
 }
 
 /* ─── Empty state extra ──────────────────────────────────────────── */
