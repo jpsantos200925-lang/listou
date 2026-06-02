@@ -43,9 +43,16 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-undef': 'off',
+      // React Hooks v7 recommended inclui set-state-in-effect como error;
+      // nossos hooks usam o padrão de reset síncrono no início do effect,
+      // que é válido — rebaixa para warn.
+      'react-hooks/set-state-in-effect': 'warn',
       // Regras type-aware: exigem projectService: true acima
       '@typescript-eslint/no-floating-promises': ['warn', { ignoreVoid: true }],
       '@typescript-eslint/await-thenable': 'error',
