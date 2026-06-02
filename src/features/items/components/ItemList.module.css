@@ -30,7 +30,7 @@
 
 /* Item row — animation + touch behavior */
 .itemRow {
-  animation: itemEnter .4s cubic-bezier(.34,1.56,.64,1) both;
+  animation: itemEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   position: relative;
   z-index: 2;
   touch-action: pan-y;
@@ -42,7 +42,11 @@
 }
 
 .itemRow:not(.dragging) {
-  transition: transform .25s cubic-bezier(.25,.8,.25,1), background var(--transition), border-color var(--transition), opacity var(--transition);
+  transition:
+    transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1),
+    background var(--transition),
+    border-color var(--transition),
+    opacity var(--transition);
 }
 
 /* Custom checkbox — :checked sibling CSS */
@@ -79,6 +83,6 @@
 }
 
 .removing {
-  animation: slideOut .25s ease forwards;
+  animation: slideOut 0.25s ease forwards;
   overflow: hidden;
 }

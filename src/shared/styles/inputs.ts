@@ -1,0 +1,2 @@
+export const sheetInputCls =
+  'flex-1 px-4 py-3.5 text-base bg-surface border border-border rounded-lg text-text-1 font-body outline-none transition-[border-color,box-shadow] placeholder:text-text-3 focus:border-gold-dim focus:shadow-[0_0_0_3px_rgba(46,107,78,.1)]'
