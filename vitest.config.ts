@@ -25,9 +25,9 @@ export default defineConfig({
         'src/styles/**',
       ],
       thresholds: {
-        // Cobertura por camada: utils e schemas são 100%. Services/hooks exigem integração futura.
         'src/features/items/utils/**': { lines: 100, functions: 100, branches: 100, statements: 100 },
         'src/shared/utils/**': { lines: 100, functions: 100, branches: 100, statements: 100 },
+        'src/schemas/**': { lines: 100, functions: 100, branches: 100, statements: 100 },
       },
     },
   },

@@ -8,6 +8,7 @@ import {
   subscribeToExpenses,
   unsubscribeFromExpenses,
 } from '../services/expenses.service'
+import { toast } from '@/shared/components/Toast'
 
 export function useExpenses(listId: string, month: string) {
   const [expenses, setExpenses] = useState<Expense[]>([])
@@ -27,26 +28,28 @@ export function useExpenses(listId: string, month: string) {
         setExpenses(data)
       } catch (err) {
         console.error('[useExpenses] fetchExpenses error', err)
-        if (!cancelled) setExpenses([])
+        if (!cancelled) {
+          setExpenses([])
+          toast.error('Não foi possível carregar os gastos')
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
 
-      // Só abre o canal se o componente ainda estiver montado
       if (cancelled) return
 
       channel = subscribeToExpenses(listId, month, {
-        onInsert: ({ new: expense }) =>
+        onInsert: expense =>
           setExpenses(prev => {
             if (expense.month !== month || prev.some(e => e.id === expense.id)) return prev
             return [expense, ...prev]
           }),
-        onUpdate: ({ new: expense }) =>
+        onUpdate: expense =>
           setExpenses(prev => {
             if (expense.month !== month) return prev
             return prev.map(e => (e.id === expense.id ? expense : e))
           }),
-        onDelete: ({ old: expense }) =>
+        onDelete: expense =>
           setExpenses(prev => prev.filter(e => e.id !== expense.id)),
         onStatus: (status, err) => {
           if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
@@ -68,19 +71,24 @@ export function useExpenses(listId: string, month: string) {
     expenses,
     loading,
     total,
-    addExpense: (payload: { description: string | null; amount: number }) =>
-      addExpense(listId, { ...payload, month }),
+    addExpense: async (payload: { description: string | null; amount: number }) => {
+      try {
+        return await addExpense(listId, { ...payload, month })
+      } catch (err) {
+        console.error('[useExpenses] addExpense error', err)
+        toast.error('Erro ao adicionar o gasto')
+        throw err
+      }
+    },
     deleteExpense: async (id: string) => {
-      // Otimista: remove da UI imediatamente
       setExpenses(prev => prev.filter(e => e.id !== id))
       try {
         await removeExpense(id)
       } catch (err) {
-        // Rollback se o servidor rejeitar
         console.error('[useExpenses] removeExpense error', err)
+        toast.error('Erro ao remover o gasto')
         const data = await fetchExpenses(listId, month).catch(() => null)
         if (data) setExpenses(data)
-        throw err
       }
     },
   }

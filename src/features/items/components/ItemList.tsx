@@ -77,6 +77,7 @@ function ItemRow({ item, onToggle, onDelete, onEditRequest }: ItemRowProps) {
 
   function onTouchStart(e: React.TouchEvent) {
     const t = e.touches[0]
+    if (!t) return
     startX.current = t.clientX
     startY.current = t.clientY
     lockedAxis.current = null
@@ -85,6 +86,7 @@ function ItemRow({ item, onToggle, onDelete, onEditRequest }: ItemRowProps) {
 
   function onTouchMove(e: React.TouchEvent) {
     const t = e.touches[0]
+    if (!t) return
     const dx = t.clientX - startX.current
     const dy = t.clientY - startY.current
     if (!lockedAxis.current) {

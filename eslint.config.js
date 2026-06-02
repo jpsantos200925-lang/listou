@@ -26,6 +26,7 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
         ecmaFeatures: { jsx: true },
+        projectService: true,
       },
       globals: {
         ...globals.browser,
@@ -44,8 +45,11 @@ export default [
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'react-hooks/set-state-in-effect': 'warn',
       'no-undef': 'off',
+      // Regras type-aware: exigem projectService: true acima
+      '@typescript-eslint/no-floating-promises': ['warn', { ignoreVoid: true }],
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-misused-promises': ['warn', { checksVoidReturn: { attributes: false } }],
     },
   },
 

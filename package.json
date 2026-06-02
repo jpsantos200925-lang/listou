@@ -16,7 +16,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "prepare": "husky",
+    "gen:types": "npx supabase gen types typescript --project-id $SUPABASE_PROJECT_REF > src/types/supabase.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -29,7 +31,13 @@
     "tailwindcss": "^4.3.0",
     "zod": "^4.4.3"
   },
+  "lint-staged": {
+    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,css,md}": ["prettier --write"]
+  },
   "devDependencies": {
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",

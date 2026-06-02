@@ -1,11 +1,14 @@
 import { supabase } from '@/shared/services/supabaseClient'
 import type { Expense } from '@/types'
+import type { Database } from '@/types/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
+type ExpenseRow = Database['public']['Tables']['expenses']['Row']
+
 export interface ExpenseCallbacks {
-  onInsert: (payload: { new: Expense; old: Record<string, never> }) => void
-  onUpdate: (payload: { new: Expense; old: Partial<Expense> }) => void
-  onDelete: (payload: { new: Record<string, never>; old: Partial<Expense> }) => void
+  onInsert: (expense: ExpenseRow) => void
+  onUpdate: (expense: ExpenseRow) => void
+  onDelete: (expense: Partial<ExpenseRow>) => void
   onStatus: (status: string, err?: Error) => void
 }
 
@@ -17,7 +20,7 @@ export async function fetchExpenses(listId: string, month: string): Promise<Expe
     .eq('month', month)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return data as Expense[]
+  return data ?? []
 }
 
 export async function addExpense(
@@ -31,7 +34,7 @@ export async function addExpense(
     .select()
     .single()
   if (error) throw error
-  return data as Expense
+  return data!
 }
 
 export async function removeExpense(id: string): Promise<void> {
@@ -46,22 +49,22 @@ export function subscribeToExpenses(
 ): RealtimeChannel {
   return supabase
     .channel(`expenses:${listId}:${month}`)
-    .on(
+    .on<ExpenseRow>(
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'expenses', filter: `list_id=eq.${listId}` },
-      callbacks.onInsert as never
+      payload => callbacks.onInsert(payload.new as ExpenseRow)
     )
-    .on(
+    .on<ExpenseRow>(
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'expenses', filter: `list_id=eq.${listId}` },
-      callbacks.onUpdate as never
+      payload => callbacks.onUpdate(payload.new as ExpenseRow)
     )
-    .on(
+    .on<ExpenseRow>(
       'postgres_changes',
       { event: 'DELETE', schema: 'public', table: 'expenses', filter: `list_id=eq.${listId}` },
-      callbacks.onDelete as never
+      payload => callbacks.onDelete(payload.old as Partial<ExpenseRow>)
     )
-    .subscribe(callbacks.onStatus as never)
+    .subscribe(callbacks.onStatus)
 }
 
 export function unsubscribeFromExpenses(channel: RealtimeChannel) {

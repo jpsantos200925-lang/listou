@@ -55,13 +55,17 @@ export default function ItemForm({ open, onClose, onAdd, onEdit, initial }: Item
       quantity: data.quantity.trim() || '1',
       is_online_purchase: data.is_online_purchase,
     }
-    if (isEditing && initial) {
-      await onEdit(initial.id, payload)
-      onClose()
-    } else {
-      await onAdd(payload)
-      reset({ name: '', quantity: '', is_online_purchase: false })
-      setTimeout(() => setFocus('name'), 50)
+    try {
+      if (isEditing && initial) {
+        await onEdit(initial.id, payload)
+        onClose()
+      } else {
+        await onAdd(payload)
+        reset({ name: '', quantity: '', is_online_purchase: false })
+        setTimeout(() => setFocus('name'), 50)
+      }
+    } catch {
+      // erro já reportado via toast no hook
     }
   }
 

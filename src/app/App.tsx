@@ -1,6 +1,7 @@
 import { useAuth } from '@/features/auth'
 import AppRoutes from './routes'
 import ErrorBoundary from '@/shared/components/ErrorBoundary'
+import { Toaster } from '@/shared/components/Toast'
 
 export default function App() {
   const { session, loading } = useAuth()
@@ -10,6 +11,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AppRoutes session={session} />
+      <Toaster />
     </ErrorBoundary>
   )
 }

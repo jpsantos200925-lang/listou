@@ -12,6 +12,7 @@ import {
   unsubscribeFromItems,
 } from '../services/items.service'
 import { copyPriceResultsForItems } from '@/features/prices/services/prices.service'
+import { toast } from '@/shared/components/Toast'
 
 interface AddItemPayload {
   name: string
@@ -37,21 +38,21 @@ export function useItems(listId: string | undefined, month: string) {
         setItems(data)
       } catch (err) {
         console.error('[useItems] fetchItems error', err)
-        if (!cancelled) setItems([])
+        if (!cancelled) {
+          setItems([])
+          toast.error('Não foi possível carregar os itens')
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
 
-      // Só abre o canal se o componente ainda estiver montado
       if (cancelled) return
 
       channel = subscribeToItems(listId, month, {
-        onInsert: ({ new: item }) =>
+        onInsert: item =>
           setItems(prev => (prev.some(i => i.id === item.id) ? prev : [item, ...prev])),
-        onUpdate: ({ new: item }) =>
-          setItems(prev => prev.map(i => (i.id === item.id ? item : i))),
-        onDelete: ({ old: item }) =>
-          setItems(prev => prev.filter(i => i.id !== item.id)),
+        onUpdate: item => setItems(prev => prev.map(i => (i.id === item.id ? item : i))),
+        onDelete: item => setItems(prev => prev.filter(i => i.id !== item.id)),
         onStatus: (status, err) => {
           if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             console.error('[useItems] realtime status', status, err)
@@ -69,28 +70,46 @@ export function useItems(listId: string | undefined, month: string) {
   return {
     items,
     loading,
-    addItem: ({ name, quantity, is_online_purchase = false }: AddItemPayload) =>
-      addItem(listId!, { name, quantity, month, is_online_purchase }),
+    addItem: async ({ name, quantity, is_online_purchase = false }: AddItemPayload) => {
+      try {
+        return await addItem(listId!, { name, quantity, month, is_online_purchase })
+      } catch (err) {
+        console.error('[useItems] addItem error', err)
+        toast.error('Erro ao adicionar o item')
+        throw err
+      }
+    },
     toggleItem,
     deleteItem: async (id: string) => {
-      // Otimista: remove da UI imediatamente
       setItems(prev => prev.filter(i => i.id !== id))
       try {
         await removeItem(id)
       } catch (err) {
-        // Rollback se o servidor rejeitar
         console.error('[useItems] removeItem error', err)
+        toast.error('Erro ao remover o item')
         const data = await fetchItems(listId!, month).catch(() => null)
         if (data) setItems(data)
+      }
+    },
+    editItem: async (
+      id: string,
+      updates: Partial<Pick<Item, 'name' | 'quantity' | 'is_online_purchase'>>
+    ) => {
+      const snapshot = items.find(i => i.id === id)
+      setItems(prev => prev.map(i => (i.id === id ? { ...i, ...updates } : i)))
+      try {
+        return await updateItem(id, updates)
+      } catch (err) {
+        console.error('[useItems] updateItem error', err)
+        toast.error('Erro ao salvar a alteração')
+        if (snapshot) setItems(prev => prev.map(i => (i.id === id ? snapshot : i)))
         throw err
       }
     },
-    editItem: (id: string, updates: Partial<Pick<Item, 'name' | 'quantity' | 'is_online_purchase'>>) => {
-      setItems(prev => prev.map(i => (i.id === id ? { ...i, ...updates } : i)))
-      return updateItem(id, updates)
-    },
     copyFromMonth: async (sourceMonth: string) => {
       const { items: inserted, idMap } = await copyItemsFromMonth(listId!, sourceMonth, month)
+      // Falha silenciosa — copiar preços é side effect não-crítico,
+      // não deve bloquear a cópia dos itens.
       await copyPriceResultsForItems(idMap).catch(err =>
         console.error('[useItems] copyPriceResultsForItems error', err)
       )

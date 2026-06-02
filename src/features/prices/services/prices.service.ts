@@ -8,7 +8,7 @@ export async function fetchPriceResults(itemId: string): Promise<PriceResult[]> 
     .eq('item_id', itemId)
     .order('price', { ascending: true })
   if (error) throw error
-  return data as PriceResult[]
+  return data ?? []
 }
 
 export async function triggerPriceSearch(itemId: string, query: string): Promise<PriceResult[]> {
@@ -16,6 +16,7 @@ export async function triggerPriceSearch(itemId: string, query: string): Promise
     body: { item_id: itemId, query },
   })
   if (error) throw error
+  // Edge Function retorna shape arbitrário (unknown) — cast necessário aqui.
   return (data?.results ?? []) as PriceResult[]
 }
 
@@ -25,18 +26,13 @@ export async function copyPriceResultsForItems(idMap: Map<string, string>): Prom
 
   const { data, error } = await supabase.from('price_results').select('*').in('item_id', oldIds)
   if (error) throw error
-  if (!data.length) return
+  if (!data?.length) return
 
-  const inserts = (data as PriceResult[])
-    .map(({ product_name, price, image_url, product_url, found_at, item_id }) => ({
-      item_id: idMap.get(item_id),
-      product_name,
-      price,
-      image_url,
-      product_url,
-      found_at,
-    }))
-    .filter(r => r.item_id)
+  const inserts = data.flatMap(({ product_name, price, image_url, product_url, found_at, item_id }) => {
+    const newItemId = idMap.get(item_id)
+    if (!newItemId) return []
+    return [{ item_id: newItemId, product_name, price, image_url, product_url, found_at }]
+  })
 
   if (!inserts.length) return
 

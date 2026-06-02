@@ -13,12 +13,25 @@ export function useListBySlug(slug: string | undefined): {
 
   useEffect(() => {
     if (!slug) return
+
+    let cancelled = false
     setLoading(true)
     setNotFound(false)
-    fetchListBySlug(slug)
-      .then(setList)
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false))
+
+    ;(async () => {
+      try {
+        const data = await fetchListBySlug(slug)
+        if (!cancelled) setList(data)
+      } catch {
+        if (!cancelled) setNotFound(true)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
   }, [slug])
 
   return { list, loading, notFound }

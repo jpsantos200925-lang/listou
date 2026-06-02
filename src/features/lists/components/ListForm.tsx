@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import type { List } from '@/types'
 import { listSchema, type ListFormData } from '@/schemas/list.schema'
 import { checkSlugAvailable } from '../services/lists.service'
-import { supabase } from '@/shared/services/supabaseClient'
 import SlugInput from './SlugInput'
 import LogoUpload from './LogoUpload'
 
@@ -146,7 +145,6 @@ export default function ListForm({ open, onClose, onSave, initial }: ListFormPro
     defaultValues: DEFAULTS,
   })
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const formValues = watch()
 
   useEffect(() => {
@@ -192,16 +190,7 @@ export default function ListForm({ open, onClose, onSave, initial }: ListFormPro
   }
 
   const onSubmit = async (data: ListFormData) => {
-    // Valida disponibilidade do slug antes de salvar
-    let slugOk = await checkSlugAvailable(data.slug)
-    if (!slugOk && initial?.id) {
-      const { data: existing } = await supabase
-        .from('lists')
-        .select('id')
-        .eq('slug', data.slug)
-        .maybeSingle()
-      slugOk = (existing as { id: string } | null)?.id === initial.id
-    }
+    const slugOk = await checkSlugAvailable(data.slug, initial?.id)
     if (!slugOk) {
       setError('slug', { message: 'Este slug já existe' })
       return

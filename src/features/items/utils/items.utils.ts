@@ -15,12 +15,12 @@ export const MONTHS: string[] = [
 
 export function parseMonth(month: string): { year: number; m: number } {
   const [year, m] = month.split('-').map(Number)
-  return { year, m }
+  return { year: year ?? 0, m: m ?? 1 }
 }
 
 export function formatMonth(month: string): { name: string; year: number } {
   const { year, m } = parseMonth(month)
-  return { name: MONTHS[m - 1], year }
+  return { name: MONTHS[m - 1] ?? '', year }
 }
 
 export function addMonths(month: string, delta: number): string {

@@ -7,30 +7,31 @@ export async function fetchLists(): Promise<List[]> {
     .select('*')
     .order('created_at', { ascending: true })
   if (error) throw error
-  return data as List[]
+  return data ?? []
 }
 
 export async function fetchListBySlug(slug: string): Promise<List> {
   const { data, error } = await supabase.from('lists').select('*').eq('slug', slug).single()
   if (error) throw error
-  return data as List
+  return data!
 }
 
-export async function checkSlugAvailable(slug: string): Promise<boolean> {
+export async function checkSlugAvailable(slug: string, excludeId?: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('lists')
     .select('id')
     .eq('slug', slug)
     .maybeSingle()
   if (error) throw error
-  return data === null
+  if (!data) return true
+  return excludeId ? data.id === excludeId : false
 }
 
 export async function createList(payload: Omit<List, 'id' | 'user_id' | 'created_at'>): Promise<List> {
   // user_id é preenchido automaticamente via DEFAULT auth.uid() no banco
   const { data, error } = await supabase.from('lists').insert(payload).select().single()
   if (error) throw error
-  return data as List
+  return data!
 }
 
 export async function updateList(id: string, payload: Partial<List>): Promise<List> {
@@ -41,7 +42,7 @@ export async function updateList(id: string, payload: Partial<List>): Promise<Li
     .select()
     .single()
   if (error) throw error
-  return data as List
+  return data!
 }
 
 export async function deleteList(id: string): Promise<void> {
@@ -64,11 +65,17 @@ function resizeToWebPBlob(file: File): Promise<Blob> {
         canvas.width = Math.round(img.width * scale)
         canvas.height = Math.round(img.height * scale)
         const ctx = canvas.getContext('2d')
-        if (!ctx) { reject(new Error('canvas context unavailable')); return }
+        if (!ctx) {
+          reject(new Error('canvas context unavailable'))
+          return
+        }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
         canvas.toBlob(
           blob => {
-            if (!blob) { reject(new Error('canvas.toBlob retornou null')); return }
+            if (!blob) {
+              reject(new Error('canvas.toBlob retornou null'))
+              return
+            }
             resolve(blob)
           },
           'image/webp',
