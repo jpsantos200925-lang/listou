@@ -51,19 +51,8 @@ export async function updateItem(id, updates) {
   return data
 }
 
-export async function fetchMonthsForList(listId) {
-  const { data, error } = await supabase
-    .from('items')
-    .select('month')
-    .eq('list_id', listId)
-    .order('month', { ascending: false })
-  if (error) throw error
-  const unique = [...new Set(data.map(d => d.month))]
-  return unique
-}
-
 export async function copyItemsFromMonth(listId, fromMonth, toMonth) {
-  const { data, error } = await supabase
+  const { data: sources, error } = await supabase
     .from('items')
     .select('id, name, quantity, is_online_purchase')
     .eq('list_id', listId)
@@ -71,23 +60,27 @@ export async function copyItemsFromMonth(listId, fromMonth, toMonth) {
     .order('created_at', { ascending: true })
   if (error) throw error
 
-  const inserts = data.map(({ name, quantity, is_online_purchase }) => ({
-    list_id: listId,
-    name,
-    quantity,
-    month: toMonth,
-    checked: false,
-    is_online_purchase: is_online_purchase ?? false,
-  }))
-
-  const { data: inserted, error: insertError } = await supabase
-    .from('items')
-    .insert(inserts)
-    .select()
-  if (insertError) throw insertError
-
-  // Build old→new id map (positional: Supabase returns in insertion order)
-  const idMap = new Map(data.map((src, i) => [src.id, inserted[i].id]))
+  // Insere os itens um a um para garantir o mapeamento old→new sem depender
+  // da ordem de retorno do banco em inserções em lote.
+  const inserted = []
+  const idMap = new Map()
+  for (const src of sources) {
+    const { data: newItem, error: insertError } = await supabase
+      .from('items')
+      .insert({
+        list_id: listId,
+        name: src.name,
+        quantity: src.quantity,
+        month: toMonth,
+        checked: false,
+        is_online_purchase: src.is_online_purchase ?? false,
+      })
+      .select()
+      .single()
+    if (insertError) throw insertError
+    inserted.push(newItem)
+    idMap.set(src.id, newItem.id)
+  }
 
   return { items: inserted, idMap }
 }

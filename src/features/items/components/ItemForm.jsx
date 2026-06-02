@@ -1,25 +1,26 @@
 import { useEffect, useRef, useState } from 'react'
-
-const sheetInputCls = 'flex-1 px-4 py-3.5 text-base bg-surface border border-border rounded-lg text-text-1 font-body outline-none transition-[border-color,box-shadow] placeholder:text-text-3 focus:border-gold-dim focus:shadow-[0_0_0_3px_rgba(46,107,78,.1)]'
+import { sheetInputCls } from '@/shared/styles/inputs'
 
 export default function ItemForm({ open, onClose, onAdd, onEdit, initial }) {
   const [name, setName] = useState('')
   const [quantity, setQuantity] = useState('')
   const [isOnline, setIsOnline] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const nameRef = useRef(null)
   const isEditing = Boolean(initial)
 
   useEffect(() => {
-    if (open) {
-      setName(initial?.name ?? '')
-      setQuantity(initial?.quantity ?? '')
-      setIsOnline(initial?.is_online_purchase ?? false)
-      setTimeout(() => nameRef.current?.focus(), 80)
-    } else {
+    if (!open) {
       setName('')
       setQuantity('')
       setIsOnline(false)
+      setSubmitting(false)
+      return
     }
+    setName(initial?.name ?? '')
+    setQuantity(initial?.quantity ?? '')
+    setIsOnline(initial?.is_online_purchase ?? false)
+    setTimeout(() => nameRef.current?.focus(), 80)
   }, [open, initial])
 
   useEffect(() => {
@@ -31,16 +32,21 @@ export default function ItemForm({ open, onClose, onAdd, onEdit, initial }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim() || submitting) return
     const payload = { name: name.trim(), quantity: quantity.trim() || '1', is_online_purchase: isOnline }
-    if (isEditing) {
-      await onEdit(initial.id, payload)
-      onClose()
-    } else {
-      await onAdd(payload)
-      setName('')
-      setQuantity('')
-      setTimeout(() => nameRef.current?.focus(), 50)
+    setSubmitting(true)
+    try {
+      if (isEditing) {
+        await onEdit(initial.id, payload)
+        onClose()
+      } else {
+        await onAdd(payload)
+        setName('')
+        setQuantity('')
+        setTimeout(() => nameRef.current?.focus(), 50)
+      }
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -69,6 +75,7 @@ export default function ItemForm({ open, onClose, onAdd, onEdit, initial }) {
             onChange={(e) => setName(e.target.value)}
             autoComplete="off"
             enterKeyHint="next"
+            maxLength={200}
           />
           <input
             className={sheetInputCls}
@@ -77,9 +84,10 @@ export default function ItemForm({ open, onClose, onAdd, onEdit, initial }) {
             onChange={(e) => setQuantity(e.target.value)}
             autoComplete="off"
             enterKeyHint="done"
+            maxLength={50}
           />
 
-          {/* Toggle switch using Tailwind peer */}
+          {/* Toggle switch usando Tailwind peer */}
           <label className="flex items-center gap-2.5 cursor-pointer py-1 px-0.5 select-none">
             <input
               type="checkbox"
@@ -101,14 +109,16 @@ export default function ItemForm({ open, onClose, onAdd, onEdit, initial }) {
               type="button"
               className="shrink-0 px-[22px] py-[13px] bg-transparent border border-border rounded-lg text-text-2 font-body text-sm font-medium cursor-pointer transition-all hover:bg-surface-2 hover:text-text-1"
               onClick={onClose}
+              disabled={submitting}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 py-[13px] bg-[linear-gradient(135deg,var(--color-gold),var(--color-gold-lt))] border-none rounded-lg text-white font-body text-sm font-semibold tracking-[.04em] cursor-pointer transition-[opacity,transform] hover:opacity-90 hover:-translate-y-px active:translate-y-0"
+              disabled={submitting}
+              className="flex-1 py-[13px] bg-[linear-gradient(135deg,var(--color-gold),var(--color-gold-lt))] border-none rounded-lg text-white font-body text-sm font-semibold tracking-[.04em] cursor-pointer transition-[opacity,transform] hover:opacity-90 hover:-translate-y-px active:translate-y-0 disabled:opacity-50"
             >
-              {isEditing ? 'Salvar' : 'Adicionar'}
+              {submitting ? 'Salvando…' : isEditing ? 'Salvar' : 'Adicionar'}
             </button>
           </div>
         </form>

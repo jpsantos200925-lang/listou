@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useExpenses } from '../hooks/useExpenses'
-
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)
-}
+import { TrashIcon } from '@/shared/components/Icons'
+import { formatCurrency, formatShortDate } from '@/shared/utils/formatters'
+import { sheetInputCls } from '@/shared/styles/inputs'
 
 function formatAmountDisplay(digits) {
   if (!digits) return ''
@@ -12,23 +11,6 @@ function formatAmountDisplay(digits) {
     maximumFractionDigits: 2,
   })
 }
-
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
-}
-
-function TrashIcon() {
-  return (
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <path d="M10 11v6M14 11v6" />
-    </svg>
-  )
-}
-
-const sheetInputCls = 'flex-1 px-4 py-3.5 text-base bg-surface border border-border rounded-lg text-text-1 font-body outline-none transition-[border-color,box-shadow] placeholder:text-text-3 focus:border-gold-dim focus:shadow-[0_0_0_3px_rgba(46,107,78,.1)]'
 
 export default function ExpenseSection({ listId, month }) {
   const { expenses, loading, total, addExpense, deleteExpense } = useExpenses(listId, month)
@@ -40,8 +22,8 @@ export default function ExpenseSection({ listId, month }) {
   const amountRef = useRef(null)
 
   useEffect(() => {
-    if (formOpen) setTimeout(() => amountRef.current?.focus(), 80)
-    else { setDescription(''); setAmount('') }
+    if (!formOpen) { setDescription(''); setAmount(''); return }
+    setTimeout(() => amountRef.current?.focus(), 80)
   }, [formOpen])
 
   useEffect(() => {
@@ -122,7 +104,7 @@ export default function ExpenseSection({ listId, month }) {
                     {expense.description || 'Sem descrição'}
                   </span>
                   <span className="text-[10px] text-label tracking-[.03em]">
-                    {formatDate(expense.created_at)}
+                    {formatShortDate(expense.created_at)}
                   </span>
                 </div>
                 <span className="text-[13px] font-semibold text-primary whitespace-nowrap shrink-0">
@@ -133,7 +115,7 @@ export default function ExpenseSection({ listId, month }) {
                   onClick={() => deleteExpense(expense.id)}
                   aria-label="Remover lançamento"
                 >
-                  <TrashIcon />
+                  <TrashIcon size={11} strokeWidth={2.5} withHandle={false} />
                 </button>
               </li>
             ))}
@@ -163,6 +145,7 @@ export default function ExpenseSection({ listId, month }) {
                 onChange={(e) => setDescription(e.target.value)}
                 autoComplete="off"
                 enterKeyHint="next"
+                maxLength={200}
               />
               <div className="relative flex items-center">
                 <span className="absolute left-4 text-[15px] font-semibold text-primary pointer-events-none select-none leading-none">

@@ -5,6 +5,7 @@ export function usePriceSearch(itemId, itemName) {
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (!itemId) return
@@ -15,6 +16,7 @@ export function usePriceSearch(itemId, itemName) {
         if (!cancelled) setResults(data)
       } catch (err) {
         console.error('[usePriceSearch] fetchPriceResults error', err)
+        if (!cancelled) setError(err.message)
       } finally {
         if (!cancelled) setInitialLoading(false)
       }
@@ -25,15 +27,17 @@ export function usePriceSearch(itemId, itemName) {
   async function search() {
     if (loading) return
     setLoading(true)
+    setError(null)
     try {
       const data = await triggerPriceSearch(itemId, itemName)
       setResults(data)
     } catch (err) {
       console.error('[usePriceSearch] triggerPriceSearch error', err)
+      setError(err.message)
     } finally {
       setLoading(false)
     }
   }
 
-  return { results, loading, initialLoading, search }
+  return { results, loading, initialLoading, error, search }
 }

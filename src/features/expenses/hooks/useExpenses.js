@@ -30,10 +30,12 @@ export function useExpenses(listId, month) {
         if (!cancelled) setLoading(false)
       }
 
+      // Só abre o canal se o componente ainda estiver montado
+      if (cancelled) return
+
       channel = subscribeToExpenses(listId, month, {
         onInsert: ({ new: expense }) => setExpenses((prev) => {
-          if (expense.month !== month) return prev
-          if (prev.find((e) => e.id === expense.id)) return prev
+          if (expense.month !== month || prev.some((e) => e.id === expense.id)) return prev
           return [expense, ...prev]
         }),
         onUpdate: ({ new: expense }) => setExpenses((prev) => {
@@ -65,9 +67,18 @@ export function useExpenses(listId, month) {
     total,
     addExpense: ({ description, amount }) =>
       addExpense(listId, { description, amount, month }),
-    deleteExpense: (id) => {
+    deleteExpense: async (id) => {
+      // Otimista: remove da UI imediatamente
       setExpenses((prev) => prev.filter((e) => e.id !== id))
-      return removeExpense(id)
+      try {
+        await removeExpense(id)
+      } catch (err) {
+        // Rollback se o servidor rejeitar
+        console.error('[useExpenses] removeExpense error', err)
+        const data = await fetchExpenses(listId, month).catch(() => null)
+        if (data) setExpenses(data)
+        throw err
+      }
     },
   }
 }

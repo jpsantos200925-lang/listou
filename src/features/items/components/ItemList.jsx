@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { PriceSearchSection } from '@/features/prices'
+import { TrashIcon } from '@/shared/components/Icons'
 import styles from './ItemList.module.css'
 
 function CheckIcon() {
@@ -7,18 +8,6 @@ function CheckIcon() {
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
       stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <polyline className="animate-check-draw [stroke-dasharray:20]" points="20 6 9 17 4 12" />
-    </svg>
-  )
-}
-
-function TrashIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <path d="M10 11v6M14 11v6" />
-      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
     </svg>
   )
 }
@@ -75,9 +64,8 @@ function ItemRow({ item, onToggle, onDelete, onEditRequest }) {
     const dx = t.clientX - startX.current
     const dy = t.clientY - startY.current
     if (!lockedAxis.current) {
-      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-        lockedAxis.current = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
-      } else return
+      if (Math.abs(dx) <= 8 && Math.abs(dy) <= 8) return
+      lockedAxis.current = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
     }
     if (lockedAxis.current !== 'x') return
     const base = offsetRef.current < 0 ? offsetRef.current : 0
@@ -145,7 +133,7 @@ function ItemRow({ item, onToggle, onDelete, onEditRequest }) {
             <span className={`text-sm font-normal text-text whitespace-nowrap overflow-hidden text-ellipsis transition-all ${item.checked ? 'line-through text-text-40' : ''}`}>
               {item.name}
             </span>
-            <span className="shrink-0 text-[10px] font-medium tracking-[.04em] text-label bg-white/[.06] border border-white/[.08] px-[7px] py-0.5 rounded-[20px] whitespace-nowrap">
+            <span className="shrink-0 text-[10px] font-medium tracking-[.04em] text-label bg-white/6 border border-white/8 px-[7px] py-0.5 rounded-[20px] whitespace-nowrap">
               {item.quantity}
             </span>
           </div>

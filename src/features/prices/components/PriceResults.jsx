@@ -1,14 +1,6 @@
+import { formatCurrency, formatDateWithTime } from '@/shared/utils/formatters'
+
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='none' stroke='%23444' stroke-width='1.5' stroke-linecap='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E"
-
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount)
-}
-
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('pt-BR', {
-    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-  })
-}
 
 export default function PriceResults({ results, loading }) {
   if (loading) {
@@ -46,7 +38,7 @@ export default function PriceResults({ results, loading }) {
               <span className="text-[11px] text-text whitespace-nowrap overflow-hidden text-ellipsis leading-[1.3]">
                 {r.product_name}
               </span>
-              <span className="text-[9px] text-label tracking-[.03em]">{formatDate(r.found_at)}</span>
+              <span className="text-[9px] text-label tracking-[.03em]">{formatDateWithTime(r.found_at)}</span>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="text-[13px] font-bold text-primary whitespace-nowrap">

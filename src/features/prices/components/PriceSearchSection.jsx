@@ -2,7 +2,7 @@ import { usePriceSearch } from '../hooks/usePriceSearch'
 import PriceResults from './PriceResults'
 
 export default function PriceSearchSection({ itemId, itemName }) {
-  const { results, loading, initialLoading, search } = usePriceSearch(itemId, itemName)
+  const { results, loading, initialLoading, error, search } = usePriceSearch(itemId, itemName)
   const hasResults = results.length > 0
 
   return (
@@ -53,6 +53,12 @@ export default function PriceSearchSection({ itemId, itemName }) {
           )}
         </button>
       </div>
+
+      {error && (
+        <p className="text-[11px] text-red-400 mt-1 mb-1 px-0.5">
+          Falha na busca: {error}
+        </p>
+      )}
 
       {!initialLoading && <PriceResults results={results} loading={loading} />}
     </div>

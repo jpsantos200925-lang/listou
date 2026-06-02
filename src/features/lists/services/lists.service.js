@@ -30,10 +30,10 @@ export async function checkSlugAvailable(slug) {
 }
 
 export async function createList(payload) {
-  const { data: { user } } = await supabase.auth.getUser()
+  // user_id é preenchido automaticamente via DEFAULT auth.uid() no banco
   const { data, error } = await supabase
     .from('lists')
-    .insert({ ...payload, user_id: user.id })
+    .insert(payload)
     .select()
     .single()
   if (error) throw error
@@ -56,7 +56,8 @@ export async function deleteList(id) {
   if (error) throw error
 }
 
-export function uploadListLogo(file) {
+// Converte File para blob WebP redimensionado (256×256 max)
+function resizeToWebPBlob(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onerror = reject
@@ -70,10 +71,45 @@ export function uploadListLogo(file) {
         canvas.width = Math.round(img.width * scale)
         canvas.height = Math.round(img.height * scale)
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/webp', 0.85))
+        canvas.toBlob((blob) => {
+          if (!blob) { reject(new Error('canvas.toBlob retornou null')); return }
+          resolve(blob)
+        }, 'image/webp', 0.85)
       }
       img.src = e.target.result
     }
     reader.readAsDataURL(file)
   })
+}
+
+export async function uploadListLogo(file) {
+  const blob = await resizeToWebPBlob(file)
+  const filename = `${crypto.randomUUID()}.webp`
+
+  const { error } = await supabase.storage
+    .from('list-logos')
+    .upload(filename, blob, { contentType: 'image/webp', upsert: false })
+  if (error) throw error
+
+  const { data } = supabase.storage.from('list-logos').getPublicUrl(filename)
+  return data.publicUrl
+}
+
+// Migra um logo antigo (data URL) para o Storage.
+// Chamado de forma lazy quando o usuário abre uma lista com logo legado.
+export async function migrateLogoToStorage(listId, dataUrl) {
+  const res = await fetch(dataUrl)
+  const blob = await res.blob()
+  const filename = `${crypto.randomUUID()}.webp`
+
+  const { error } = await supabase.storage
+    .from('list-logos')
+    .upload(filename, blob, { contentType: 'image/webp', upsert: false })
+  if (error) throw error
+
+  const { data } = supabase.storage.from('list-logos').getPublicUrl(filename)
+  const publicUrl = data.publicUrl
+
+  await updateList(listId, { logo_url: publicUrl })
+  return publicUrl
 }

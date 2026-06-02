@@ -43,7 +43,7 @@ export default function SlugInput({ value, onChange, excludeId }) {
         let available = await checkSlugAvailable(value)
         if (!available && excludeId) {
           const { data } = await supabase.from('lists').select('id').eq('slug', value).single()
-          if (data?.id === excludeId) available = true
+          available = data?.id === excludeId
         }
         setStatus(available ? 'available' : 'taken')
       } catch {
