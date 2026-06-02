@@ -33,7 +33,7 @@ export default function PriceResults({ results, loading }: PriceResultsProps) {
           className="rounded-md overflow-hidden bg-primary-4-item border border-primary-10 transition-[border-color] hover:border-primary-30"
         >
           <a
-            href={r.product_url}
+            href={r.product_url ?? undefined}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2.5 py-2 px-2.5 no-underline text-inherit"
