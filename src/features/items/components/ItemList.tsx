@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Item, List } from '@/types'
 import { PriceSearchSection } from '@/features/prices'
 import { TrashIcon } from '@/shared/components/Icons'
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
 import styles from './ItemList.module.css'
 
 function CheckIcon() {
@@ -53,6 +54,7 @@ function ItemRow({ item, onToggle, onDelete, onEditRequest }: ItemRowProps) {
   const [removing, setRemoving] = useState(false)
   const [offset, setOffsetState] = useState(0)
   const [dragging, setDragging] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const offsetRef = useRef(0)
   const rowRef = useRef<HTMLDivElement>(null)
@@ -106,6 +108,12 @@ function ItemRow({ item, onToggle, onDelete, onEditRequest }: ItemRowProps) {
   }
 
   function handleDelete() {
+    setOffset(0)
+    setConfirmOpen(true)
+  }
+
+  function handleConfirmDelete() {
+    setConfirmOpen(false)
     setRemoving(true)
     setTimeout(() => onDelete(item.id), 220)
   }
@@ -124,6 +132,7 @@ function ItemRow({ item, onToggle, onDelete, onEditRequest }: ItemRowProps) {
   }
 
   return (
+    <>
     <div className={`${styles.entry} ${removing ? styles.removing : ''}`}>
       <div className={`${styles.swipeWrap} ${offset !== 0 ? styles.swiped : ''}`}>
         <button
@@ -190,6 +199,17 @@ function ItemRow({ item, onToggle, onDelete, onEditRequest }: ItemRowProps) {
       </div>
       {item.is_online_purchase && <PriceSearchSection itemId={item.id} itemName={item.name} />}
     </div>
+
+      {confirmOpen && (
+        <ConfirmDialog
+          title={`Remover "${item.name}"?`}
+          message="O item será removido desta lista."
+          confirmLabel="Remover"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmOpen(false)}
+        />
+      )}
+    </>
   )
 }
 

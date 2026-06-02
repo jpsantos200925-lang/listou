@@ -3,11 +3,13 @@ import type { List } from '@/types'
 import type { ListFormData } from '@/schemas/list.schema'
 import { signOut } from '@/features/auth'
 import { useLists, ListCard, ListForm } from '@/features/lists'
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
 
 export default function Home() {
   const { lists, loading, addList, editList, removeList } = useLists()
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<List | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<List | null>(null)
 
   const handleSave = async (form: ListFormData, logoFile: File | null) => {
     if (editing) {
@@ -23,10 +25,8 @@ export default function Home() {
     setFormOpen(true)
   }
 
-  const handleDelete = async (list: List) => {
-    if (window.confirm(`Deletar a lista "${list.name}"? Todos os itens serão perdidos.`)) {
-      await removeList(list.id)
-    }
+  const handleDelete = (list: List) => {
+    setDeleteTarget(list)
   }
 
   return (
@@ -146,6 +146,18 @@ export default function Home() {
         onSave={handleSave}
         initial={editing}
       />
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title={`Deletar "${deleteTarget.name}"?`}
+          message="Todos os itens desta lista serão perdidos permanentemente."
+          onConfirm={async () => {
+            await removeList(deleteTarget.id)
+            setDeleteTarget(null)
+          }}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   )
 }

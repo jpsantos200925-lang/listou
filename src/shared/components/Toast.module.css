@@ -1,0 +1,138 @@
+@keyframes shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  z-index: 10000;
+  pointer-events: none;
+  padding: 0 16px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  border-radius: var(--radius);
+  width: 100%;
+  overflow: hidden;
+  animation: fadeUp 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+  pointer-events: auto;
+  cursor: default;
+  border: 1px solid;
+  border-left-width: 3px;
+}
+
+.error {
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--color-red) 10%, #181818) 0%,
+    #141414 60%
+  );
+  border-color: color-mix(in srgb, var(--color-red) 22%, #222);
+  border-left-color: var(--color-red);
+  box-shadow:
+    -4px 0 16px color-mix(in srgb, var(--color-red) 18%, transparent),
+    0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.success {
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--color-green) 10%, #181818) 0%,
+    #141414 60%
+  );
+  border-color: color-mix(in srgb, var(--color-green) 22%, #222);
+  border-left-color: var(--color-green);
+  box-shadow:
+    -4px 0 16px color-mix(in srgb, var(--color-green) 18%, transparent),
+    0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.icon {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  display: flex;
+}
+
+.iconError {
+  color: var(--color-red);
+}
+
+.iconSuccess {
+  color: var(--color-green);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.message {
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--color-text, #f0f0f0);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+.close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--color-text, #f0f0f0) 30%, transparent);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  transition:
+    color 200ms ease,
+    background 200ms ease;
+  margin-top: 1px;
+  outline: none;
+}
+
+.close:hover {
+  color: color-mix(in srgb, var(--color-text, #f0f0f0) 75%, transparent);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  transform-origin: left;
+  animation: shrink 4000ms linear forwards;
+}
+
+.progressError {
+  background: color-mix(in srgb, var(--color-red) 55%, transparent);
+}
+
+.progressSuccess {
+  background: color-mix(in srgb, var(--color-green) 55%, transparent);
+}
