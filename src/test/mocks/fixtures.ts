@@ -1,4 +1,4 @@
-import type { List, Item, Expense, PriceResult } from '@/types'
+import type { List, Item } from '@/types'
 
 export const listFixtures: List[] = [
   {
@@ -48,36 +48,5 @@ export const itemFixtures: Item[] = [
     checked: false,
     is_online_purchase: true,
     created_at: '2024-03-01T10:02:00Z',
-  },
-]
-
-export const expenseFixtures: Expense[] = [
-  {
-    id: 'expense-1',
-    list_id: 'list-1',
-    description: 'Supermercado',
-    amount: 150.75,
-    month: '2024-03',
-    created_at: '2024-03-10T15:00:00Z',
-  },
-  {
-    id: 'expense-2',
-    list_id: 'list-1',
-    description: null,
-    amount: 29.9,
-    month: '2024-03',
-    created_at: '2024-03-12T09:00:00Z',
-  },
-]
-
-export const priceResultFixtures: PriceResult[] = [
-  {
-    id: 'price-1',
-    item_id: 'item-3',
-    product_name: 'Notebook Dell Inspiron 15',
-    price: 2999.99,
-    image_url: 'https://example.com/notebook.jpg',
-    product_url: 'https://example.com/produto/1',
-    found_at: '2024-03-01T10:00:00Z',
   },
 ]
